@@ -1,4 +1,11 @@
-// $Id$
+(function (callback) {
+  if (typeof define === 'function' && define.amd) {
+    define(['core/Core'], callback);
+  }
+  else {
+    callback();
+  }
+}(function () {
 
 /**
  * The Manager acts as the controller in a Model-View-Controller framework. All
@@ -11,75 +18,32 @@ AjaxSolr.AbstractManager = AjaxSolr.Class.extend(
   /** @lends AjaxSolr.AbstractManager.prototype */
   {
   /**
-   * The fully-qualified URL of the Solr application. You must include the
-   * trailing slash. Do not include the path to any Solr servlet.
-   *
-   * @field
-   * @public
-   * @type String
-   * @default "http://localhost:8983/solr/"
+   * @param {Object} [attributes]
+   * @param {String} [attributes.solrUrl] The fully-qualified URL of the Solr
+   *   application. You must include the trailing slash. Do not include the path
+   *   to any Solr servlet. Defaults to "http://localhost:8983/solr/"
+   * @param {String} [attributes.proxyUrl] If we want to proxy queries through a
+   *   script, rather than send queries to Solr directly, set this field to the
+   *   fully-qualified URL of the script.
+   * @param {String} [attributes.servlet] The default Solr servlet. You may
+   *   prepend the servlet with a core if using multiple cores. Defaults to
+   *   "servlet".
    */
-  solrUrl: 'http://localhost:8983/solr/',
-
-  /**
-   * If we want to proxy queries through a script, rather than send queries
-   * to Solr directly, set this field to the fully-qualified URL of the script.
-   *
-   * @field
-   * @public
-   * @type String
-   */
-  proxyUrl: null,
-
-  /**
-   * The default Solr servlet. You may prepend the servlet with a core if using
-   * multiple cores.
-   *
-   * @field
-   * @public
-   * @type String
-   * @default "select"
-   */
-  servlet: 'select',
-
-  /**
-   * The most recent response from Solr.
-   *
-   * @field
-   * @private
-   * @type Object
-   * @default {}
-   */
-  response: {},
-
-  /** 
-   * A collection of all registered widgets. For internal use only.
-   *
-   * @field
-   * @private
-   * @type Object
-   * @default {}
-   */
-  widgets: {},
-
-  /**
-   * The parameter store for the manager and its widgets. For internal use only.
-   *
-   * @field
-   * @private
-   * @type Object
-   */
-  store: null,
-
-  /**
-   * Whether <tt>init()</tt> has been called yet. For internal use only.
-   *
-   * @field
-   * @private
-   * @type Boolean
-   * @default false
-   */
-  initialized: false,
+  constructor: function (attributes) {
+    AjaxSolr.extend(this, {
+      solrUrl: 'http://localhost:8983/solr/',
+      proxyUrl: null,
+      servlet: 'select',
+      // The most recent response from Solr.
+      response: {},
+      // A collection of all registered widgets.
+      widgets: {},
+      // The parameter store for the manager and its widgets.
+      store: null,
+      // Whether <tt>init()</tt> has been called yet.
+      initialized: false
+    }, attributes);
+  },
 
   /**
    * An abstract hook for child implementations.
@@ -154,16 +118,17 @@ AjaxSolr.AbstractManager = AjaxSolr.Class.extend(
    * An abstract hook for child implementations.
    *
    * <p>Sends the request to Solr, i.e. to <code>this.solrUrl</code> or <code>
-   * this.proxyUrl</code>, and receives Solr's response. It should send <code>
-   * this.store.string()</code> as the Solr query, and it should pass Solr's
+   * this.proxyUrl</code>, and receives Solr's response. It should pass Solr's
    * response to <code>handleResponse()</code> for handling.</p>
    *
    * <p>See <tt>managers/Manager.jquery.js</tt> for a jQuery implementation.</p>
    *
    * @param {String} servlet The Solr servlet to send the request to.
+   * @param {String} string The query string of the request. If not set, it
+   *   should default to <code>this.store.string()</code>
    * @throws If not defined in child implementation.
    */
-  executeRequest: function (servlet) {
+  executeRequest: function (servlet, string) {
     throw 'Abstract method executeRequest must be overridden in a subclass.';
   },
 
@@ -179,5 +144,16 @@ AjaxSolr.AbstractManager = AjaxSolr.Class.extend(
     for (var widgetId in this.widgets) {
       this.widgets[widgetId].afterRequest();
     }
+  },
+
+  /**
+   * This method is executed if Solr encounters an error.
+   *
+   * @param {String} message An error message.
+   */
+  handleError: function (message) {
+    window.console && console.log && console.log(message);
   }
 });
+
+}));

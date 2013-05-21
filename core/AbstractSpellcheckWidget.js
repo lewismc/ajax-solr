@@ -1,9 +1,14 @@
-// $Id$
+(function (callback) {
+  if (typeof define === 'function' && define.amd) {
+    define(['core/AbstractWidget'], callback);
+  }
+  else {
+    callback();
+  }
+}(function () {
 
 /**
  * Interacts with Solr's SpellCheckComponent.
- *
- * <p>Requires <tt>String#strtr</tt> defined in <tt>ajaxsolr.support.js</tt>.
  *
  * @see http://wiki.apache.org/solr/SpellCheckComponent
  *
@@ -13,15 +18,12 @@
 AjaxSolr.AbstractSpellcheckWidget = AjaxSolr.AbstractWidget.extend(
   /** @lends AjaxSolr.AbstractSpellcheckWidget.prototype */
   {
-  /**
-   * The suggestions.
-   *
-   * @field
-   * @private
-   * @type Object
-   * @default {}
-   */
-  suggestions: {},
+  constructor: function (attributes) {
+    AjaxSolr.extend(this, {
+      // The suggestions.
+      suggestions: {}
+    }, attributes);
+  },
 
   /**
    * Uses the top suggestion for each word to return a suggested query.
@@ -29,11 +31,11 @@ AjaxSolr.AbstractSpellcheckWidget = AjaxSolr.AbstractWidget.extend(
    * @returns {String} A suggested query.
    */
   suggestion: function () {
-    var replacePairs = {};
+    var suggestion = this.manager.response.responseHeader.params['spellcheck.q'];
     for (var word in this.suggestions) {
-      replacePairs[word] = this.suggestions[word][0];
+      suggestion = suggestion.replace(new RegExp(word, 'g'), this.suggestions[word][0]);
     }
-    return this.manager.response.responseHeader.params['spellcheck.q'].strtr(replacePairs);
+    return suggestion;
   },
 
   beforeRequest: function () {
@@ -49,7 +51,8 @@ AjaxSolr.AbstractSpellcheckWidget = AjaxSolr.AbstractWidget.extend(
     this.suggestions = {};
 
     if (this.manager.response.spellcheck && this.manager.response.spellcheck.suggestions) {
-      var suggestions = this.manager.response.spellcheck.suggestions;
+      var suggestions = this.manager.response.spellcheck.suggestions,
+          empty = true;
 
       for (var word in suggestions) {
         if (word == 'collation' || word == 'correctlySpelled') continue;
@@ -63,9 +66,10 @@ AjaxSolr.AbstractSpellcheckWidget = AjaxSolr.AbstractWidget.extend(
             this.suggestions[word].push(suggestions[word].suggestion[i]);
           }
         }
+        empty = false;
       }
 
-      if (AjaxSolr.size(this.suggestions)) {
+      if (!empty) {
         this.handleSuggestions(this.manager.response);
       }
     }
@@ -78,3 +82,5 @@ AjaxSolr.AbstractSpellcheckWidget = AjaxSolr.AbstractWidget.extend(
    */
   handleSuggestions: function () {}
 });
+
+}));

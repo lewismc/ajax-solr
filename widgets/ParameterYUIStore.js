@@ -1,5 +1,3 @@
-// $Id$
-
 /**
  * A parameter store that stores the values of exposed parameters using the YUI
  * History Manager to maintain the application's state. Don't forget to add the
@@ -18,6 +16,12 @@
  * <input id="yui-history-field" type="hidden">
  * </pre>
  *
+ * Configure the manager with:
+ *
+ * <pre>
+ * Manager.setStore(new AjaxSolr.ParameterYUIStore());
+ * </pre>
+ *
  * @see http://developer.yahoo.com/yui/history/
  * @class ParameterYUIStore
  * @augments AjaxSolr.ParameterStore
@@ -25,46 +29,23 @@
 AjaxSolr.ParameterYUIStore = AjaxSolr.ParameterStore.extend(
   /** @lends AjaxSolr.ParameterYUIStore.prototype */
   {
-
   /**
-   * The name of the YUI History Manager module to use for the parameter store.
-   *
-   * @field
-   * @public
-   * @type String
-   * @default 'q'
+   * @param {Object} [attributes]
+   * @param {String} [attributes.module] The name of the YUI History Manager
+   *   module to use for the parameter store. Defaults to "q".
+   * 
    */
-  module: 'q',
-
-  /**
-   * Whether the YUI History Manager is initialized.
-   *
-   * @field
-   * @private
-   * @type Boolean
-   * @default false
-   */
-  initialized: false,
-
-  /**
-   * Whether the parameter store is curring loading state.
-   *
-   * @field
-   * @private
-   * @type Boolean
-   * @default false
-   */
-  loading: false,
-
-  /**
-   * Whether the parameter store is curring saving state.
-   *
-   * @field
-   * @private
-   * @type Boolean
-   * @default false
-   */
-  saving: false,
+  constructor: function (attributes) {
+    AjaxSolr.extend(this, {
+      module: 'q',
+      // Whether the YUI History Manager is initialized.
+      initialized: false,
+      // Whether the parameter store is curring loading state.
+      loading: false,
+      // Whether the parameter store is curring saving state.
+      saving: false
+    }, attributes);
+  },
 
   /**
    * Initializes the YUI History Manager.

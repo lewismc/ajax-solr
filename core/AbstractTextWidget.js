@@ -1,4 +1,11 @@
-// $Id$
+(function (callback) {
+  if (typeof define === 'function' && define.amd) {
+    define(['core/AbstractWidget'], callback);
+  }
+  else {
+    callback();
+  }
+}(function () {
 
 /**
  * Baseclass for all free-text widgets.
@@ -10,9 +17,15 @@ AjaxSolr.AbstractTextWidget = AjaxSolr.AbstractWidget.extend(
   /** @lends AjaxSolr.AbstractTextWidget.prototype */
   {
   /**
-   * This widget will by default set the offset parameter to 0 on each request.
+   * @param {Object} [attributes]
+   * @param {Number} [attributes.start] This widget will by default set the
+   *   offset parameter to 0 on each request.
    */
-  start: 0,
+  constructor: function (attributes) {
+    AjaxSolr.extend(this, {
+      start: 0
+    }, attributes);
+  },
 
   /**
    * Sets the main Solr query to the given string.
@@ -93,3 +106,5 @@ AjaxSolr.AbstractTextWidget = AjaxSolr.AbstractWidget.extend(
     }
   }
 });
+
+}));

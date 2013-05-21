@@ -1,4 +1,11 @@
-// $Id$
+(function (callback) {
+  if (typeof define === 'function' && define.amd) {
+    define(['core/Core', 'core/Parameter'], callback);
+  }
+  else {
+    callback();
+  }
+}(function () {
 
 /**
  * The ParameterStore, as its name suggests, stores Solr parameters. Widgets
@@ -29,35 +36,21 @@
 AjaxSolr.ParameterStore = AjaxSolr.Class.extend(
   /** @lends AjaxSolr.ParameterStore.prototype */
   {
-  /**
-   * The names of the exposed parameters. Any parameters that your widgets
-   * expose to the user, directly or indirectly, should be listed here.
-   *
-   * @field
-   * @public
-   * @type String[]
-   * @default []
-   */
-  exposed: [],
-
-  /**
-   * The Solr parameters.
-   *
-   * @field
-   * @private
-   * @type Object
-   * @default {}
-   */
-  params: {},
-
-  /**
-   * A reference to the parameter store's manager. For internal use only.
-   *
-   * @field
-   * @private
-   * @type AjaxSolr.AbstractManager
-   */
-  manager: null,
+  constructor: function (attributes) {
+    /**
+     * @param {Object} [attributes]
+     * @param {String[]} [attributes.exposed] The names of the exposed
+     *   parameters. Any parameters that your widgets expose to the user,
+     *   directly or indirectly, should be listed here.
+     */
+    AjaxSolr.extend(this, {
+      exposed: [],
+      // The Solr parameters.
+      params: {},
+      // A reference to the parameter store's manager.
+      manager: null
+    }, attributes);
+  },
 
   /**
    * An abstract hook for child implementations.
@@ -258,18 +251,24 @@ AjaxSolr.ParameterStore = AjaxSolr.Class.extend(
    * </tt>. So, we need to choose another name for toString().</p>
    */
   string: function () {
-    var params = [];
+    var params = [], string;
     for (var name in this.params) {
       if (this.isMultiple(name)) {
         for (var i = 0, l = this.params[name].length; i < l; i++) {
-          params.push(this.params[name][i].string());
+          string = this.params[name][i].string();
+          if (string) {
+            params.push(string);
+          }
         }
       }
       else {
-        params.push(this.params[name].string());
+        string = this.params[name].string();
+        if (string) {
+          params.push(string);
+        }
       }
     }
-    return AjaxSolr.compact(params).join('&');
+    return params.join('&');
   },
 
   /**
@@ -294,20 +293,26 @@ AjaxSolr.ParameterStore = AjaxSolr.Class.extend(
    * @returns {String} A string representation of the exposed parameters.
    */
   exposedString: function () {
-    var params = [];
+    var params = [], string;
     for (var i = 0, l = this.exposed.length; i < l; i++) {
       if (this.params[this.exposed[i]] !== undefined) {
         if (this.isMultiple(this.exposed[i])) {
           for (var j = 0, m = this.params[this.exposed[i]].length; j < m; j++) {
-            params.push(this.params[this.exposed[i]][j].string());
+            string = this.params[this.exposed[i]][j].string();
+            if (string) {
+              params.push(string);
+            }
           }
         }
         else {
-          params.push(this.params[this.exposed[i]].string());
+          string = this.params[this.exposed[i]].string();
+          if (string) {
+            params.push(string);
+          }
         }
       }
     }
-    return AjaxSolr.compact(params).join('&');
+    return params.join('&');
   },
 
   /**
@@ -357,3 +362,5 @@ AjaxSolr.ParameterStore = AjaxSolr.Class.extend(
     return '';
   }
 });
+
+}));

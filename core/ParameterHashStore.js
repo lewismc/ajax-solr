@@ -1,4 +1,11 @@
-// $Id$
+(function (callback) {
+  if (typeof define === 'function' && define.amd) {
+    define(['core/ParameterStore'], callback);
+  }
+  else {
+    callback();
+  }
+}(function () {
 
 /**
  * A parameter store that stores the values of exposed parameters in the URL
@@ -8,6 +15,8 @@
  * parameters from the hash if it observes a change or if the hash is empty.
  * The onhashchange event is used if the browser supports it.</p>
  *
+ * <p>Configure the manager with:</p>
+ *
  * @class ParameterHashStore
  * @augments AjaxSolr.ParameterStore
  * @see https://developer.mozilla.org/en-US/docs/DOM/window.onhashchange
@@ -16,35 +25,20 @@ AjaxSolr.ParameterHashStore = AjaxSolr.ParameterStore.extend(
   /** @lends AjaxSolr.ParameterHashStore.prototype */
   {
   /**
-   * The interval in milliseconds to use in <tt>setInterval()</tt>. Do not set
-   * the interval too low as you may set up a race condition. 
-   *
-   * @field
-   * @public
-   * @type Number
-   * @default 250
-   * @see ParameterHashStore#init()
+   * @param {Object} [attributes]
+   * @param {Number} [attributes.interval] The interval in milliseconds to use
+   *   in <tt>setInterval()</tt>. Do not set the interval too low as you may set
+   *   up a race condition. Defaults to 250.
    */
-  interval: 250,
-
-  /**
-   * Reference to the setInterval() function.
-   *
-   * @field
-   * @private
-   * @type Function
-   */
-  intervalId: null,
-
-  /**
-   * A local copy of the URL hash, so we can detect changes to it.
-   *
-   * @field
-   * @private
-   * @type String
-   * @default ""
-   */
-  hash: '',
+  constructor: function (attributes) {
+    AjaxSolr.extend(this, {
+      interval: 250,
+      // Reference to the setInterval() function.
+      intervalId: null,
+      // A local copy of the URL hash, so we can detect changes to it.
+      hash: ''
+    }, attributes);
+  },
 
   /**
    * If loading and saving the hash take longer than <tt>interval</tt>, we'll
@@ -52,10 +46,8 @@ AjaxSolr.ParameterHashStore = AjaxSolr.ParameterStore.extend(
    */
   init: function () {
     if (this.exposed.length) {
-      // Check if the browser supports the onhashchange event
-      // IE 8 and 9 in compatibility mode report that they support onhashchange when they 
-      // really don't - Check document.documentMode to ensure it's undefined or greater 
-      // than 7.
+      // Check if the browser supports the onhashchange event. IE 8 and 9 in compatibility mode
+      // incorrectly report support for onhashchange.
       if ('onhashchange' in window && (!document.documentMode || document.documentMode > 7)) {
         if (window.addEventListener) {
           window.addEventListener('hashchange', this.intervalFunction(this), false);
@@ -68,7 +60,6 @@ AjaxSolr.ParameterHashStore = AjaxSolr.ParameterStore.extend(
         }
       }
       else {
-        // No onhashchange event so fall back to timer
         this.intervalId = window.setInterval(this.intervalFunction(this), this.interval);
       }
     }
@@ -81,11 +72,11 @@ AjaxSolr.ParameterHashStore = AjaxSolr.ParameterStore.extend(
   save: function () {
     this.hash = this.exposedString();
     if (this.storedString()) {
-      // make a new history entry
+      // Make a new history entry.
       window.location.hash = this.hash;
     }
     else {
-      // replace the old history entry
+      // Replace the old history entry.
       window.location.replace(window.location.href.replace('#', '') + '#' + this.hash);
     }
   },
@@ -120,3 +111,5 @@ AjaxSolr.ParameterHashStore = AjaxSolr.ParameterStore.extend(
     }
   }
 });
+
+}));

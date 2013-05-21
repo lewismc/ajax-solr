@@ -1,4 +1,11 @@
-// $Id$
+(function (callback) {
+  if (typeof define === 'function' && define.amd) {
+    define(['core/AbstractWidget'], callback);
+  }
+  else {
+    callback();
+  }
+}(function () {
 
 (function ($) {
 
@@ -17,72 +24,31 @@ AjaxSolr.PagerWidget = AjaxSolr.AbstractWidget.extend(
   /** @lends AjaxSolr.PagerWidget.prototype */
   {
   /**
-   * How many links are shown around the current page.
-   *
-   * @field
-   * @public
-   * @type Number
-   * @default 4
+   * @param {Object} [attributes]
+   * @param {Number} [attributes.innerWindow] How many links are shown around
+   *   the current page. Defaults to 4.
+   * @param {Number} [attributes.outerWindow] How many links are around the
+   *   first and the last page. Defaults to 1.
+   * @param {String} [attributes.prevLabel] The previous page link label.
+   *   Defaults to "&laquo; Previous".
+   * @param {String} [attributes.nextLabel] The next page link label. Defaults
+   *   to "Next &raquo;".
+   * @param {String} [attributes.separator] Separator between pagination links.
+   *   Defaults to " ".
    */
-  innerWindow: 4,
-
-  /**
-   * How many links are around the first and the last page.
-   *
-   * @field
-   * @public
-   * @type Number
-   * @default 1
-   */
-  outerWindow: 1,
-
-  /**
-   * The previous page link label.
-   *
-   * @field
-   * @public
-   * @type String
-   * @default "&laquo; previous"
-   */
-  prevLabel: '&laquo; Previous',
-
-  /**
-   * The next page link label.
-   *
-   * @field
-   * @public
-   * @type String
-   * @default "next &raquo;"
-   */
-  nextLabel: 'Next &raquo;',
-
-  /**
-   * Separator between pagination links.
-   *
-   * @field
-   * @public
-   * @type String
-   * @default ""
-   */
-  separator: ' ',
-
-  /**
-   * The current page number.
-   *
-   * @field
-   * @private
-   * @type Number
-   */
-  currentPage: null,
-
-  /**
-   * The total number of pages.
-   *
-   * @field
-   * @private
-   * @type Number
-   */
-  totalPages: null,
+  constructor: function (attributes) {
+    AjaxSolr.extend(this, {
+      innerWindow: 4,
+      outerWindow: 1,
+      prevLabel: '&laquo; Previous',
+      nextLabel: 'Next &raquo;',
+      separator: ' ',
+      // The current page number.
+      currentPage: null,
+      // The total number of pages.
+      totalPages: null
+    }, attributes);
+  },
 
   /**
    * @returns {String} The gap in page links, which is represented by:
@@ -169,10 +135,10 @@ AjaxSolr.PagerWidget = AjaxSolr.AbstractWidget.extend(
     text = text || page;
 
     if (page && page != this.currentPage) {
-      return $('<a href="#"/>').html(text).attr('rel', this.relValue(page)).addClass(classnames[1]).click(this.clickHandler(page));
+      return $('<a href="#"></a>').html(text).attr('rel', this.relValue(page)).addClass(classnames[1]).click(this.clickHandler(page));
     }
     else {
-      return $('<span/>').html(text).addClass(classnames.join(' '));
+      return $('<span></span>').html(text).addClass(classnames.join(' '));
     }
   },
 
@@ -238,7 +204,17 @@ AjaxSolr.PagerWidget = AjaxSolr.AbstractWidget.extend(
     if (this.totalPages) {
       links.unshift(this.pageLinkOrSpan(this.previousPage(), [ 'pager-disabled', 'pager-prev' ], this.prevLabel));
       links.push(this.pageLinkOrSpan(this.nextPage(), [ 'pager-disabled', 'pager-next' ], this.nextLabel));
-      AjaxSolr.theme('list_items', this.target, links, this.separator);
+
+      var $target = $(this.target);
+      $target.empty();
+
+      for (var i = 0, l = links.length; i < l; i++) {
+        var $li = $('<li></li>');
+        if (this.separator && i > 0) {
+          $li.append(this.separator);
+        }
+        $target.append($li.append(links[i]));
+      }
     }
   },
 
@@ -275,3 +251,5 @@ AjaxSolr.PagerWidget = AjaxSolr.AbstractWidget.extend(
 });
 
 })(jQuery);
+
+}));
